@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #3D4455 #161822;
+  }
+
+  *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #161822;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: #3D4455;
+    border-radius: 3px;
+  }
+
+  body {
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* 防止移动端双击缩放 */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  /* HUD 通用卡片 */
+  .hud-card {
+    @apply bg-surface-elevated border border-text-disabled/30 rounded-hud shadow-hud;
+  }
+
+  .hud-card-gold {
+    @apply bg-surface-elevated border border-accent-gold/40 rounded-hud shadow-hud-gold;
+  }
+
+  /* 血条样式 */
+  .hp-bar {
+    @apply h-3 rounded-hud-full bg-battle-hp-bg overflow-hidden;
+  }
+  .hp-bar-fill {
+    @apply h-full rounded-hud-full bg-battle-hp transition-all duration-300 ease-out;
+  }
+
+  /* 魂力条样式 */
+  .mp-bar {
+    @apply h-2 rounded-hud-full bg-battle-mp-bg overflow-hidden;
+  }
+  .mp-bar-fill {
+    @apply h-full rounded-hud-full bg-battle-mp transition-all duration-300 ease-out;
+  }
+
+  /* 按钮样式 */
+  .btn-primary {
+    @apply px-4 py-2 bg-accent-gold text-surface-base font-bold rounded-hud
+           hover:bg-accent-gold-light active:scale-95 transition-all duration-150
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
+
+  .btn-danger {
+    @apply px-4 py-2 bg-accent-crimson text-white font-bold rounded-hud
+           hover:bg-accent-crimson-light active:scale-95 transition-all duration-150;
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 bg-transparent text-text-secondary border border-text-disabled/30 rounded-hud
+           hover:bg-surface-field hover:text-text-primary transition-all duration-150;
+  }
+
+  /* 品质文字颜色 */
+  .quality-white { @apply text-rarity-white; }
+  .quality-green { @apply text-rarity-green; }
+  .quality-blue { @apply text-rarity-blue; }
+  .quality-purple { @apply text-rarity-purple; }
+  .quality-orange { @apply text-rarity-orange; }
+  .quality-red { @apply text-rarity-red; }
+  .quality-gold { @apply text-rarity-gold; }
+
+  /* 伤害数字动画 */
+  .damage-number {
+    @apply absolute font-mono font-bold pointer-events-none z-50;
+    animation: damageFloat 1.2s ease-out forwards;
+  }
+
+  .combo-counter {
+    @apply font-mono font-bold text-accent-gold;
+    animation: comboPop 0.3s ease-out;
+  }
+}
+
+@layer utilities {
+  .text-shadow-gold {
+    text-shadow: 0 0 8px rgba(212, 168, 83, 0.5);
+  }
+  .text-shadow-crimson {
+    text-shadow: 0 0 8px rgba(192, 57, 43, 0.5);
+  }
+}
