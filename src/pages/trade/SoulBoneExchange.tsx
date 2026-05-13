@@ -29,7 +29,7 @@ function SoulBoneCard({ listing, onBuy }: { listing: TradeListing; onBuy: (listi
             {item.quality && <span className="text-hud-xs text-text-muted">{item.quality}</span>}
           </div>
           <p className="text-hud-xs text-text-muted mt-0.5">{listing.tags?.join(' · ') || '魂骨'}</p>
-          {item.description && <p className="text-hud-xs text-text-secondary mt-1 line-clamp-2">{item.description}</p>}
+          {item.description && <p className="text-hud-xs text-text-secondary mt-1 ">{item.description}</p>}
         </div>
       </div>
 

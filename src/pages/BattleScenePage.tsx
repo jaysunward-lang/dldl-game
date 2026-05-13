@@ -1,13 +1,24 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useBattleStore } from '@stores'
-import { usePlayerStore } from '@stores'
+import { useBattleStore, usePlayerStore } from '@stores'
 import DlProgressBar from '@components/atoms/DlProgressBar'
 import DlButton from '@components/atoms/DlButton'
 import { getAvailableSkills } from '@engine/skillDefinitions'
-import type { Skill, InventoryItem } from '@types'
+import type { Skill, InventoryItem, InventoryItemType } from '@types'
 
-// ---- 品质到 Tailwind 颜色映射 ----
+const inventoryItemTypes = new Set<InventoryItemType>([
+  'soulRing',
+  'soulBone',
+  'externalBone',
+  'material',
+  'weapon',
+  'consumable',
+])
+
+function isInventoryItemType(type: string): type is InventoryItemType {
+  return inventoryItemTypes.has(type as InventoryItemType)
+}
+
 const qualityColorMap: Record<string, string> = {
   '白色': 'text-rarity-white',
   '黄色': 'text-rarity-green',
@@ -19,7 +30,6 @@ const qualityColorMap: Record<string, string> = {
   '史诗': 'text-rarity-orange',
 }
 
-// ---- 伤害飘字动画组件 ----
 function DamageFloat({ value, type, onDone }: { value: number; type: string; onDone: () => void }) {
   const colorMap: Record<string, string> = {
     damage: 'text-rarity-red',
@@ -28,7 +38,6 @@ function DamageFloat({ value, type, onDone }: { value: number; type: string; onD
     dodge: 'text-text-muted',
     dot: 'text-accent-amethyst',
   }
-  // 用 useRef 固定随机位置，避免重渲染时跳变
   const posRef = useRef<{ left: string; top: string } | null>(null)
   if (!posRef.current) {
     posRef.current = {
@@ -47,7 +56,6 @@ function DamageFloat({ value, type, onDone }: { value: number; type: string; onD
   )
 }
 
-// ---- Skill Menu Modal ----
 function SkillMenu({
   skills,
   selectedSkill,
@@ -98,7 +106,7 @@ function SkillMenu({
                   )}
                 </div>
                 <p className="text-hud-sm font-bold text-text-primary">{skill.name}</p>
-                <p className="text-hud-xs text-text-muted mt-0.5 line-clamp-2">{skill.description}</p>
+                <p className="text-hud-xs text-text-muted mt-0.5 ">{skill.description}</p>
                 <div className="flex gap-3 mt-1 text-hud-xs">
                   <span className="text-battle-mp">魂力:{skill.mpCost}</span>
                   <span className="text-text-muted">冷却:{skill.cooldown}回合</span>
@@ -114,7 +122,6 @@ function SkillMenu({
   )
 }
 
-// ---- 主战斗界面 ----
 export default function BattleScenePage() {
   const navigate = useNavigate()
   const {
@@ -132,12 +139,10 @@ export default function BattleScenePage() {
   const dmgIdRef = useRef(0)
   const logsEndRef = useRef<HTMLDivElement>(null)
 
-  // 自动滚动日志
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [logs])
 
-  // 伤害飘字处理（用 ref 做 ID 计数器，避免 deps 变化导致重复生成）
   useEffect(() => {
     if (pendingEvents.length === 0) return
     const newFloats: { id: number; value: number; type: string }[] = []
@@ -154,14 +159,12 @@ export default function BattleScenePage() {
       dmgIdRef.current += newFloats.length
       setFloatingDmgs((prev) => [...prev, ...newFloats])
     }
-    // 等待飘字动画
     const timer = setTimeout(() => {
       clearPendingEvents()
     }, 800)
     return () => clearTimeout(timer)
   }, [pendingEvents, clearPendingEvents])
 
-  // AI自动执行
   useEffect(() => {
     if (state === 'actionExec' && !isPlayerTurn) {
       const timer = setTimeout(() => {
@@ -171,7 +174,6 @@ export default function BattleScenePage() {
     }
   }, [state, isPlayerTurn, executeAITurn])
 
-  // actionPost → 自动推进
   useEffect(() => {
     if (state === 'actionPost') {
       const timer = setTimeout(() => {
@@ -181,7 +183,6 @@ export default function BattleScenePage() {
     }
   }, [state, advanceToNextActor])
 
-  // 加载中
   if (state === 'idle' || state === 'init') {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-3">
@@ -196,7 +197,6 @@ export default function BattleScenePage() {
   const playerUnit = playerUnits.find((u) => u.alive) || playerUnits[0]
   const availableSkills = getAvailableSkills(playerSkills, playerUnit?.stats.mp ?? 0)
 
-  // 结算界面
   if ((state === 'result' || state === 'reward') && battleResult) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6">
@@ -249,17 +249,26 @@ export default function BattleScenePage() {
                 variant="primary"
                 className="flex-1"
                 onClick={() => {
-                  // 应用奖励
                   const playerStore = usePlayerStore.getState()
                   playerStore.addExp(loot?.totalExp ?? 0)
                   playerStore.addGold(loot?.totalGold ?? 0)
-                  // 转移战利品到背包（过滤掉金币/经验虚拟物品）
-                  const realItems = (loot?.items ?? []).filter(
-                    (i) => i.type !== 'gold' && i.type !== 'exp',
-                  ) as InventoryItem[]
+                  const realItems: InventoryItem[] = []
+                  for (const item of loot?.items ?? []) {
+                    if (!isInventoryItemType(item.type)) continue
+                    realItems.push({
+                      id: item.id,
+                      name: item.name,
+                      type: item.type,
+                      quantity: item.quantity,
+                      quality: item.quality,
+                      icon: item.icon,
+                      description: item.description,
+                    })
+                  }
                   if (realItems.length > 0) {
                     playerStore.addItems(realItems)
                   }
+                  playerStore.unlockAchievement('first-battle-win')
                   useBattleStore.getState().resetBattle()
                   navigate('/battle', { replace: true })
                 }}
@@ -283,7 +292,6 @@ export default function BattleScenePage() {
     )
   }
 
-  // 当前行动者信息
   const currentActorId = actionOrder[currentActorIndex]
   const currentActor = [...playerUnits, ...enemyUnits].find((u) => u.id === currentActorId)
 

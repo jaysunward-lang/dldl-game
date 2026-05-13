@@ -34,7 +34,7 @@ function StallItemCard({ listing, onBuy }: { listing: TradeListing; onBuy: (list
           <p className="text-hud-xs text-text-muted mt-0.5">
             {listing.sellerName} · {typeLabelMap[item.type]}
           </p>
-          {item.description && <p className="text-hud-xs text-text-secondary mt-1 line-clamp-2">{item.description}</p>}
+          {item.description && <p className="text-hud-xs text-text-secondary mt-1 ">{item.description}</p>}
         </div>
       </div>
 

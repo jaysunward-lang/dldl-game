@@ -52,7 +52,42 @@ const initialPhase: GamePhase = {
   unlockedFeatures: [],
 }
 
-// ---- 背包物品合并辅助（按名称+类型+品质去重堆叠） ----
+function getExpToNextLevel(level: number): number {
+  return Math.round(100 * Math.pow(level, 1.6))
+}
+
+function getTitleByLevel(level: number): TitleRank {
+  if (level >= 100) return '神级'
+  if (level >= 90) return '封号斗罗'
+  if (level >= 80) return '魂斗罗'
+  if (level >= 70) return '魂圣'
+  if (level >= 60) return '魂帝'
+  if (level >= 50) return '魂王'
+  if (level >= 40) return '魂宗'
+  if (level >= 30) return '魂尊'
+  if (level >= 20) return '大魂师'
+  if (level >= 10) return '魂师'
+  return '魂士'
+}
+
+function applyLevelGrowth(player: Player): void {
+  const qm = player.wuhun.qualityMultiplier
+  const lv = player.level
+  player.title = getTitleByLevel(lv)
+  player.stats.maxHp = Math.round(180 * Math.exp(0.022 * lv) * qm)
+  player.stats.hp = player.stats.maxHp
+  player.stats.maxMp = Math.round(90 * Math.exp(0.022 * lv) * qm)
+  player.stats.mp = player.stats.maxMp
+  player.stats.attack = Math.round(18 * Math.exp(0.020 * lv) * qm)
+  player.stats.defense = Math.round(13 * Math.exp(0.020 * lv) * qm)
+  player.stats.speed = Math.round(9 * Math.exp(0.018 * lv) * qm)
+  player.stats.spirit = Math.round(45 * Math.exp(0.025 * lv) * qm)
+  player.stats.constitution = Math.round(30 * Math.exp(0.020 * lv) * qm)
+  player.stats.strength = Math.round(25 * Math.exp(0.020 * lv) * qm)
+  player.stats.agility = Math.round(15 * Math.exp(0.018 * lv) * qm)
+  player.stats.intelligence = Math.round(20 * Math.exp(0.020 * lv) * qm)
+}
+
 function mergeItemInto(inventory: InventoryItem[], item: InventoryItem): void {
   const existing = inventory.find(
     (i) => i.name === item.name && i.type === item.type && i.quality === item.quality,
@@ -105,8 +140,13 @@ export const usePlayerStore = create<PlayerState>()(
 
       addExp: (amount) =>
         set((s) => {
-          if (!s.player) return
+          if (!s.player || amount <= 0) return
           s.player.exp += amount
+          while (s.player.level < 100 && s.player.exp >= getExpToNextLevel(s.player.level)) {
+            s.player.exp -= getExpToNextLevel(s.player.level)
+            s.player.level += 1
+            applyLevelGrowth(s.player)
+          }
         }),
 
       addGold: (amount) =>
@@ -176,24 +216,10 @@ export const usePlayerStore = create<PlayerState>()(
 
       levelUp: () =>
         set((s) => {
-          if (!s.player) return
+          if (!s.player || s.player.level >= 100) return
           s.player.level += 1
-          // 等级成长公式（指数曲线 × 品质系数）
-          const qm = s.player.wuhun.qualityMultiplier
-          const lv = s.player.level
-          s.player.stats.maxHp = Math.round(180 * Math.exp(0.022 * lv) * qm)
-          s.player.stats.hp = s.player.stats.maxHp
-          s.player.stats.maxMp = Math.round(90 * Math.exp(0.022 * lv) * qm)
-          s.player.stats.mp = s.player.stats.maxMp
-          s.player.stats.attack = Math.round(18 * Math.exp(0.020 * lv) * qm)
-          s.player.stats.defense = Math.round(13 * Math.exp(0.020 * lv) * qm)
-          s.player.stats.speed = Math.round(9 * Math.exp(0.018 * lv) * qm)
-          s.player.stats.spirit = Math.round(45 * Math.exp(0.025 * lv) * qm)
-          // 次要属性成长（基础值 × 指数 × 品质系数）
-          s.player.stats.constitution = Math.round(30 * Math.exp(0.020 * lv) * qm)
-          s.player.stats.strength = Math.round(25 * Math.exp(0.020 * lv) * qm)
-          s.player.stats.agility = Math.round(15 * Math.exp(0.018 * lv) * qm)
-          s.player.stats.intelligence = Math.round(20 * Math.exp(0.020 * lv) * qm)
+          s.player.exp = 0
+          applyLevelGrowth(s.player)
         }),
 
       updateRelationShip: (npcId, delta) =>
@@ -226,16 +252,17 @@ export const usePlayerStore = create<PlayerState>()(
 
       removeItem: (itemId, quantity) => {
         const p = get().player
-        if (!p?.inventory) return false
+        const item = p?.inventory?.find((i) => i.id === itemId)
+        if (!item || item.quantity < quantity || quantity <= 0) return false
         set((s) => {
           if (!s.player?.inventory) return
           const idx = s.player.inventory.findIndex((i) => i.id === itemId)
           if (idx === -1) return
-          const item = s.player.inventory[idx]
-          if (item.quantity <= quantity) {
+          const target = s.player.inventory[idx]
+          if (target.quantity === quantity) {
             s.player.inventory.splice(idx, 1)
           } else {
-            item.quantity -= quantity
+            target.quantity -= quantity
           }
         })
         return true

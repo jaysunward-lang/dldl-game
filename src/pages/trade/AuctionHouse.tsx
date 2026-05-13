@@ -39,7 +39,7 @@ function ListingCard({ listing, onBuy }: { listing: TradeListing; onBuy: (listin
             卖家：{listing.sellerName || '匿名'} · 剩余 {listing.remainingTime || '未知'}
           </p>
           {item.description && (
-            <p className="text-hud-xs text-text-secondary mt-1 leading-tight line-clamp-2">
+            <p className="text-hud-xs text-text-secondary mt-1 leading-tight ">
               {item.description}
             </p>
           )}

@@ -140,7 +140,7 @@ export default function BackpackPanel() {
                 </span>
               </div>
               {item.description && (
-                <p className="text-hud-xs text-text-muted leading-tight line-clamp-2">
+                <p className="text-hud-xs text-text-muted leading-tight ">
                   {item.description}
                 </p>
               )}
