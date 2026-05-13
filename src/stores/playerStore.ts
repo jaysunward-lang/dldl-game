@@ -162,7 +162,7 @@ export const usePlayerStore = create<PlayerState>()(
         set((s) => {
           if (!s.player) return
           s.player.level += 1
-          // 等级成长公式：HP=180×e^(0.022×等级)×品质系数
+          // 等级成长公式（指数曲线 × 品质系数）
           const qm = s.player.wuhun.qualityMultiplier
           const lv = s.player.level
           s.player.stats.maxHp = Math.round(180 * Math.exp(0.022 * lv) * qm)
@@ -173,6 +173,11 @@ export const usePlayerStore = create<PlayerState>()(
           s.player.stats.defense = Math.round(13 * Math.exp(0.020 * lv) * qm)
           s.player.stats.speed = Math.round(9 * Math.exp(0.018 * lv) * qm)
           s.player.stats.spirit = Math.round(45 * Math.exp(0.025 * lv) * qm)
+          // 次要属性成长（基础值 × 指数 × 品质系数）
+          s.player.stats.constitution = Math.round(30 * Math.exp(0.020 * lv) * qm)
+          s.player.stats.strength = Math.round(25 * Math.exp(0.020 * lv) * qm)
+          s.player.stats.agility = Math.round(15 * Math.exp(0.018 * lv) * qm)
+          s.player.stats.intelligence = Math.round(20 * Math.exp(0.020 * lv) * qm)
         }),
 
       updateRelationShip: (npcId, delta) =>

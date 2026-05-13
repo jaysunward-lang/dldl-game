@@ -1,13 +1,21 @@
 import { Routes, Route, useNavigate } from 'react-router-dom'
 import { usePlayerStore } from '@stores'
 import DlProgressBar from '@components/atoms/DlProgressBar'
+import AttributesPanel from './soulMaster/AttributesPanel'
+import WuhunDetail from './soulMaster/WuhunDetail'
+import SoulRingsPanel from './soulMaster/SoulRingsPanel'
+import SoulBonesPanel from './soulMaster/SoulBonesPanel'
+import HiddenWeaponsPanel from './soulMaster/HiddenWeaponsPanel'
+import DomainPanel from './soulMaster/DomainPanel'
+import TrueFormPanel from './soulMaster/TrueFormPanel'
+import BackpackPanel from './soulMaster/BackpackPanel'
 
 function SoulMasterOverview() {
   const navigate = useNavigate()
   const player = usePlayerStore((s) => s.player)
   if (!player) return null
 
-  const { name, level, title, wuhun, stats, spiritRealm, spiritValue } = player
+  const { name, level, title, wuhun, stats, spiritRealm } = player
 
   const subPages = [
     { path: 'wuhun', label: '武魂', desc: wuhun.name },
@@ -62,14 +70,14 @@ export default function SoulMasterPage() {
   return (
     <Routes>
       <Route index element={<SoulMasterOverview />} />
-      <Route path="wuhun" element={<div className="p-4"><p className="text-text-secondary">武魂详情（开发中）</p></div>} />
-      <Route path="soul-rings" element={<div className="p-4"><p className="text-text-secondary">魂环管理（开发中）</p></div>} />
-      <Route path="soul-bones" element={<div className="p-4"><p className="text-text-secondary">魂骨系统（开发中）</p></div>} />
-      <Route path="hidden-weapons" element={<div className="p-4"><p className="text-text-secondary">暗器系统（开发中）</p></div>} />
-      <Route path="domain" element={<div className="p-4"><p className="text-text-secondary">领域系统（开发中）</p></div>} />
-      <Route path="true-form" element={<div className="p-4"><p className="text-text-secondary">武魂真身（开发中）</p></div>} />
-      <Route path="backpack" element={<div className="p-4"><p className="text-text-secondary">背包（开发中）</p></div>} />
-      <Route path="attributes" element={<div className="p-4"><p className="text-text-secondary">属性面板（开发中）</p></div>} />
+      <Route path="wuhun" element={<WuhunDetail />} />
+      <Route path="soul-rings" element={<SoulRingsPanel />} />
+      <Route path="soul-bones" element={<SoulBonesPanel />} />
+      <Route path="hidden-weapons" element={<HiddenWeaponsPanel />} />
+      <Route path="domain" element={<DomainPanel />} />
+      <Route path="true-form" element={<TrueFormPanel />} />
+      <Route path="backpack" element={<BackpackPanel />} />
+      <Route path="attributes" element={<AttributesPanel />} />
     </Routes>
   )
 }
