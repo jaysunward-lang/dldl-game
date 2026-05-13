@@ -68,6 +68,7 @@ function BattleOverview() {
 function DungeonDetail() {
   const navigate = useNavigate()
   const player = usePlayerStore((s) => s.player)
+  const useStamina = usePlayerStore((s) => s.useStamina)
   const initBattle = useBattleStore((s) => s.initBattle)
   const [difficulty, setDifficulty] = useState<'normal' | 'hard'>('normal')
   const [isStarting, setIsStarting] = useState(false)
@@ -77,10 +78,11 @@ function DungeonDetail() {
   const dungeon = dungeonTypes.find((d) => d.id === dungeonType) || dungeonTypes[0]
 
   const unlocked = (player?.level ?? 0) >= dungeon.minLv
-  const staminaCost = difficulty === 'hard' ? dungeon.stamina * 1.5 : dungeon.stamina
+  const staminaCost = difficulty === 'hard' ? Math.round(dungeon.stamina * 1.5) : dungeon.stamina
 
   const handleStartBattle = () => {
     if (!player || !unlocked || isStarting) return
+    if (!useStamina(staminaCost)) return // 体力不足
     setIsStarting(true)
 
     // 初始化战斗

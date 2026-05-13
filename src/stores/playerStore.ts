@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
-import type { Player, PlayerStats, WuhunInfo, GamePhase, TitleRank, SpiritRealm } from '@types'
+import type { Player, PlayerStats, WuhunInfo, GamePhase, TitleRank, SpiritRealm, InventoryItem } from '@types'
 
 interface PlayerState {
   player: Player | null
@@ -25,6 +25,9 @@ interface PlayerState {
   updateRelationShip: (npcId: string, delta: number) => void
   unlockAchievement: (id: string) => void
   setTitle: (title: string) => void
+  addItem: (item: InventoryItem) => void
+  removeItem: (itemId: string, quantity: number) => boolean
+  addItems: (items: InventoryItem[]) => void
   resetGame: () => void
 }
 
@@ -47,6 +50,18 @@ const initialPhase: GamePhase = {
   age: 6,
   levelCap: 10,
   unlockedFeatures: [],
+}
+
+// ---- 背包物品合并辅助（按名称+类型+品质去重堆叠） ----
+function mergeItemInto(inventory: InventoryItem[], item: InventoryItem): void {
+  const existing = inventory.find(
+    (i) => i.name === item.name && i.type === item.type && i.quality === item.quality,
+  )
+  if (existing) {
+    existing.quantity += item.quantity
+  } else {
+    inventory.push({ ...item })
+  }
 }
 
 export const usePlayerStore = create<PlayerState>()(
@@ -77,6 +92,7 @@ export const usePlayerStore = create<PlayerState>()(
             relationShips: {},
             achievements: [],
             currentTitle: '',
+            inventory: [],
           }
           s.isNewGame = false
         }),
@@ -201,6 +217,39 @@ export const usePlayerStore = create<PlayerState>()(
           s.player.currentTitle = title
         }),
 
+      addItem: (item) =>
+        set((s) => {
+          if (!s.player) return
+          if (!s.player.inventory) s.player.inventory = []
+          mergeItemInto(s.player.inventory, item)
+        }),
+
+      removeItem: (itemId, quantity) => {
+        const p = get().player
+        if (!p?.inventory) return false
+        set((s) => {
+          if (!s.player?.inventory) return
+          const idx = s.player.inventory.findIndex((i) => i.id === itemId)
+          if (idx === -1) return
+          const item = s.player.inventory[idx]
+          if (item.quantity <= quantity) {
+            s.player.inventory.splice(idx, 1)
+          } else {
+            item.quantity -= quantity
+          }
+        })
+        return true
+      },
+
+      addItems: (items) =>
+        set((s) => {
+          if (!s.player) return
+          if (!s.player.inventory) s.player.inventory = []
+          for (const item of items) {
+            mergeItemInto(s.player.inventory, item)
+          }
+        }),
+
       resetGame: () =>
         set((s) => {
           s.player = null
@@ -209,7 +258,14 @@ export const usePlayerStore = create<PlayerState>()(
     })),
     {
       name: 'dldl-player-storage',
-      version: 1,
+      version: 2,
+      migrate: (persistedState: unknown, _version: number) => {
+        const state = persistedState as { player: Player | null }
+        if (state?.player && !state.player.inventory) {
+          state.player.inventory = []
+        }
+        return state as Record<string, unknown>
+      },
     }
   )
 )

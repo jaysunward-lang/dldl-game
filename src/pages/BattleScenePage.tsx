@@ -5,7 +5,7 @@ import { usePlayerStore } from '@stores'
 import DlProgressBar from '@components/atoms/DlProgressBar'
 import DlButton from '@components/atoms/DlButton'
 import { getAvailableSkills } from '@engine/skillDefinitions'
-import type { Skill } from '@types'
+import type { Skill, InventoryItem } from '@types'
 
 // ---- 品质到 Tailwind 颜色映射 ----
 const qualityColorMap: Record<string, string> = {
@@ -250,8 +250,16 @@ export default function BattleScenePage() {
                 className="flex-1"
                 onClick={() => {
                   // 应用奖励
-                  usePlayerStore.getState().addExp(loot?.totalExp ?? 0)
-                  usePlayerStore.getState().addGold(loot?.totalGold ?? 0)
+                  const playerStore = usePlayerStore.getState()
+                  playerStore.addExp(loot?.totalExp ?? 0)
+                  playerStore.addGold(loot?.totalGold ?? 0)
+                  // 转移战利品到背包（过滤掉金币/经验虚拟物品）
+                  const realItems = (loot?.items ?? []).filter(
+                    (i) => i.type !== 'gold' && i.type !== 'exp',
+                  ) as InventoryItem[]
+                  if (realItems.length > 0) {
+                    playerStore.addItems(realItems)
+                  }
                   useBattleStore.getState().resetBattle()
                   navigate('/battle', { replace: true })
                 }}

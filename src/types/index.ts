@@ -19,6 +19,18 @@ export interface PlayerStats {
   dodgeRate: number; hitRate: number
 }
 
+export type InventoryItemType = 'soulRing' | 'soulBone' | 'externalBone' | 'material' | 'weapon' | 'consumable'
+
+export interface InventoryItem {
+  id: string
+  name: string
+  type: InventoryItemType
+  quantity: number
+  quality?: string
+  icon?: string
+  description?: string
+}
+
 export interface Player {
   id: string
   name: string
@@ -35,6 +47,7 @@ export interface Player {
   relationShips: Record<string, number>
   achievements: string[]
   currentTitle: string
+  inventory: InventoryItem[]
 }
 
 export interface WuhunInfo {
