@@ -1,4 +1,9 @@
 import { Routes, Route, useNavigate } from 'react-router-dom'
+import ChatPanel from './social/ChatPanel'
+import FriendsPanel from './social/FriendsPanel'
+import GuildPanel from './social/GuildPanel'
+import MailPanel from './social/MailPanel'
+import LeaderboardPanel from './social/LeaderboardPanel'
 
 const socialEntries = [
   { path: 'chat', label: '聊天', icon: '💬', desc: '世界/公会/队伍/私聊' },
@@ -39,11 +44,11 @@ export default function SocialPage() {
   return (
     <Routes>
       <Route index element={<SocialOverview />} />
-      <Route path="chat" element={<div className="p-4"><p className="text-text-secondary">聊天（开发中）</p></div>} />
-      <Route path="friends" element={<div className="p-4"><p className="text-text-secondary">好友（开发中）</p></div>} />
-      <Route path="guild" element={<div className="p-4"><p className="text-text-secondary">公会（开发中）</p></div>} />
-      <Route path="mail" element={<div className="p-4"><p className="text-text-secondary">邮件（开发中）</p></div>} />
-      <Route path="leaderboard" element={<div className="p-4"><p className="text-text-secondary">排行榜（开发中）</p></div>} />
+      <Route path="chat" element={<ChatPanel />} />
+      <Route path="friends" element={<FriendsPanel />} />
+      <Route path="guild" element={<GuildPanel />} />
+      <Route path="mail" element={<MailPanel />} />
+      <Route path="leaderboard" element={<LeaderboardPanel />} />
     </Routes>
   )
 }

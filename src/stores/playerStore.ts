@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { immer } from 'zustand/middleware/immer'
+import { useSocialStore } from './socialStore'
 import type { Player, PlayerStats, WuhunInfo, GamePhase, TitleRank, SpiritRealm, InventoryItem } from '@types'
 
 interface PlayerState {
@@ -277,11 +278,13 @@ export const usePlayerStore = create<PlayerState>()(
           }
         }),
 
-      resetGame: () =>
+      resetGame: () => {
         set((s) => {
           s.player = null
           s.isNewGame = true
-        }),
+        })
+        useSocialStore.getState().resetSocial()
+      },
     })),
     {
       name: 'dldl-player-storage',
